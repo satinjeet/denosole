@@ -10,26 +10,27 @@ To use this console in it's current state, you just need to include the main mod
 ```typescript
 import { Console } from "https://raw.githubusercontent.com/satinjeet/denosole/v0.0.1/console.ts";
 import { toggleLog } from "https://raw.githubusercontent.com/satinjeet/denosole/v0.0.1/utils/log.ts";
-import { Commander } from "https://raw.githubusercontent.com/satinjeet/denosole/v0.0.1//sub/commands/commander.ts";
+import { Commander } from "https://raw.githubusercontent.com/satinjeet/denosole/v0.0.1/sub/commands/commander.ts";
+import { Command } from "https://raw.githubusercontent.com/satinjeet/denosole/v0.0.1/sub/commands/Command.ts";
 import { ICommand } from "https://raw.githubusercontent.com/satinjeet/denosole/v0.0.1/sub/base/icommand.ts";
 
-class MyCommander extends Commander {
-    commands = {
-        'log': new class implements ICommand {
-            alias =  'log';
-            help() {
-                return 'log <on | off> to turn the logging on and off.'
-            }
-            exec = async (...args: string[]) => {
-                const arg = args[0];
-                if (!arg) {
-                    return `${this.alias} needs an argument. try log on|off`;
-                } else {
-                    return `Logging is ${toggleLog(arg == 'on')}.`;
-                }
-            }
+class LogCommand extends Command implements ICommand {
+    alias = 'log';
+    help() {
+        return 'log <on | off> to turn the logging on and off.'
+    }
+    exec = async (...args: string[]) => {
+        const arg = args[0];
+        if (!arg) {
+            return `${this.alias} needs an argument. try log on|off`;
+        } else {
+            return `Logging is ${toggleLog(arg == 'on')}.`;
         }
     }
+}
+
+class MyCommander extends Commander {
+    commands = { ...LogCommand.Instance }
 }
 
 const commander = new MyCommander();
