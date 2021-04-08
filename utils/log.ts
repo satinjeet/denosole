@@ -52,8 +52,8 @@ export function setUp(fileName: string, createFile: boolean = true, startWriting
 /**
  * Toggles the log during runtime
  */
-export function toggleLog(): string {
-    _write = !_write;
+export function toggleLog(preference: boolean): string {
+    _write = preference;
     
     return _write ? 'Enabled': 'Disabled';
 }

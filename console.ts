@@ -12,7 +12,7 @@ export namespace Console {
     /**
      * Duh !!!!
      */
-    const __version = "pre-0.0.1";
+    const __version = "0.0.1";
     /**
      * Fancy
      */
@@ -33,7 +33,7 @@ export namespace Console {
      */
     let _welcome = _welcomeMain;
 
-    let _consoleChar = "[dS] >_"
+    let _consoleChar = "[dS] >_";
 
     const { stdin, stdout, stderr } = Deno;
 
@@ -45,8 +45,8 @@ export namespace Console {
      * TODO - Need a way to allow a customized order of Execution
      * 
      */
-    async function _interveneIf(event: Keypress, command: string): Promise<{ command: string, key: string }> {
-        let _event: CharacterHandlers.Output = { command, key: "" };
+    async function _interveneIf(event: Keypress, command: string): Promise<CharacterHandlers.Output> {
+        let _event: CharacterHandlers.Output = { command, key: "", extra: "" };
         for (const handler of CharacterHandlers.orderOfExecution) {
             const __event = handler(event, command);
 
@@ -114,24 +114,31 @@ export namespace Console {
             // rtVal.key
             const rtVal = await _interveneIf(event, command);
 
-            log(2, rtVal);
+            log(2, rtVal, 'Event.....');
 
             if (event.key == 'return') {
                 // Execute the command
                 command = command.trim();
                 if (command != "") {
+                    await writeToConsole("", true, false);
+
                     const output = await commander(command);
-                    writeToConsole(output, true, false);
+
+                    await writeToConsole(output, false, false);
                     addToHistory(command);
                     command = "";
                 }
                 await _newConsole();
+            } else if (rtVal.key == 'clear') {
+                command = command.trim();
+                await rtVal.extra.status();
+                await _newConsole();
+                await writeToConsole(command, false, false);
             } else {
                 // Write to console.
                 command = rtVal.command
                 await writeToConsole(rtVal.key);
             }
-
         }
     }
 

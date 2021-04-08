@@ -4,7 +4,7 @@ import { log } from '../utils/log.ts';
 
 export namespace CharacterHandlers {
 
-    export type Output = { command: string, key: string };
+    export type Output = { command: string, key: string, extra: any };
     export type ExpectedOutput = Partial<Output> | void | undefined | null;
     export type PExpectedOutput = ExpectedOutput;
     
@@ -39,7 +39,8 @@ export namespace CharacterHandlers {
         if (event.key == 'backspace') {
             log(2, "Handled in backspace");
             if (command != "")
-            Console.writeToConsoleSync('\b \b');
+                Console.writeToConsoleSync('\b \b');
+
             return { command: command.substring(0, command.length - 1), key: "" };
         };
     
@@ -54,8 +55,13 @@ export namespace CharacterHandlers {
             Console.writeToConsoleSync(`Bye Bye !!`, true);
             Deno.exit(0);
         }
+
+        if (event.key == "l") {
+            const process = Deno.run({ cmd: ['clear'] });
+            return { command: command, key: "clear", extra: process };
+        }
     
-        return { command: command, key: "" };
+        return { command: command, key: "clear" };
     }
 
     export const orderOfExecution = [
