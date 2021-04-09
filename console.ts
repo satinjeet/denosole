@@ -1,6 +1,6 @@
 import { log, setUp, LOG_LEVELS } from './utils/log.ts';
 import { readKeypress, Keypress } from "./borrowed/keypress.ts";
-import { encoder } from "./utils/functions.ts";
+import { encoder, decoder } from "./utils/functions.ts";
 import { addToHistory } from './sub/history.ts';
 import { CharacterHandlers } from "./sub/character_handlers.ts";
 import { ICommand } from "./sub/base/icommand.ts";
@@ -121,7 +121,19 @@ export namespace Console {
 
             log(2, rtVal, 'Event.....');
 
-            if (event.key == 'return') {
+            if (rtVal.key == "hint") {
+                command = command.trim();
+                const ttyLengthP = Deno.run({ cmd: ["stty", "size"], stdout: 'piped' })
+                const [status, stdout] = await Promise.all([
+                    ttyLengthP.status(),
+                    ttyLengthP.output()
+                ]);
+                log(LOG_LEVELS.DEBUG, [status, decoder.decode(stdout)], 'TTY....');
+                const output = await commander.autoComplete(command);
+                await writeToConsole(output, true, false);
+                await _newConsole();
+                await writeToConsole(command, false, false);
+            } else if (event.key == 'return') {
                 // Execute the command
                 command = command.trim();
                 if (command != "") {

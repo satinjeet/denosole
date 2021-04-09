@@ -1,12 +1,20 @@
 import { Keypress } from '../borrowed/keypress.ts';
 import { Console } from "../console.ts";
-import { log } from '../utils/log.ts';
+import { log, LOG_LEVELS } from '../utils/log.ts';
 
 export namespace CharacterHandlers {
 
     export type Output = { command: string, key: string, extra: any };
     export type ExpectedOutput = Partial<Output> | void | undefined | null;
     export type PExpectedOutput = ExpectedOutput;
+
+    export function handleTab(event: Keypress, command: string): PExpectedOutput {
+        if (event.key == 'tab') {
+            log(LOG_LEVELS.DEBUG, event, "TAB..");
+            return { command: command, key: "hint" }
+        }
+        return;
+    }
     
     /**
      * @TODO maybe move space to it's own handler?
@@ -14,7 +22,7 @@ export namespace CharacterHandlers {
     export function handleCharKeys(event: Keypress, command: string): PExpectedOutput {
         // If the input from keyboard is not a single character
         const input = event.key || "";
-        log(2, input, "INPUT <<<");
+        log(LOG_LEVELS.DEBUG, input, "INPUT <<<");
         if (
             input !== 'space' && (
                 input.length > 1 ||
@@ -22,11 +30,11 @@ export namespace CharacterHandlers {
                 event.metaKey
             )
         ) {
-            log(2, `${input} Not Handled in char keys`);
+            log(LOG_LEVELS.DEBUG, `${input} Not Handled in char keys`);
             return undefined;
         }
 
-        log(2, `${input} Handled in char keys`);
+        log(LOG_LEVELS.DEBUG, `${input} Handled in char keys`);
         
         return {
             command: command + (input == 'space' ? ' ': input),
@@ -37,7 +45,7 @@ export namespace CharacterHandlers {
     export function handleBackspace(event: Keypress, command: string): PExpectedOutput {
     
         if (event.key == 'backspace') {
-            log(2, "Handled in backspace");
+            log(LOG_LEVELS.DEBUG, "Handled in backspace");
             if (command != "")
                 Console.writeToConsoleSync('\b \b');
 
@@ -49,9 +57,9 @@ export namespace CharacterHandlers {
     export function handleCrtl(event: Keypress, command: string): PExpectedOutput {
         if (!event.ctrlKey) return;
 
-        log(2, "in ctrl handler");
+        log(LOG_LEVELS.DEBUG, "in ctrl handler");
         if ((event.key == "c" || event.key == "d")) {
-            log(2, "Handled in ctrl");
+            log(LOG_LEVELS.DEBUG, "Handled in ctrl");
             Console.writeToConsoleSync(`Bye Bye !!`, true);
             Deno.exit(0);
         }
@@ -65,6 +73,7 @@ export namespace CharacterHandlers {
     }
 
     export const orderOfExecution = [
+        handleTab,
         handleCrtl,
         handleBackspace,
         handleCharKeys,
