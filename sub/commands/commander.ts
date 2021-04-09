@@ -6,7 +6,7 @@ import { ClearCommand } from "./ClearCommand.ts";
 
 export abstract class Commander implements ICommander {
 
-    _defaultcommands: { [key: string]: ICommand } = {
+    protected _defaultcommands: { [key: string]: ICommand } = {
         ...HelpCommand.Instance,
         ...ClearCommand.Instance,
     };
@@ -36,5 +36,13 @@ export abstract class Commander implements ICommander {
             return `Invalid command: ${cmd}, try help.`;
         }
 
+    }
+
+    public static createCommander(commands: ICommand[]): Commander {
+        const commander = new class extends Commander {
+            commands = Object.fromEntries(commands.map(_ => [_.alias, _]));
+        }
+
+        return commander;
     }
 }

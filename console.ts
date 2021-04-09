@@ -3,6 +3,8 @@ import { readKeypress, Keypress } from "./borrowed/keypress.ts";
 import { encoder } from "./utils/functions.ts";
 import { addToHistory } from './sub/history.ts';
 import { CharacterHandlers } from "./sub/character_handlers.ts";
+import { ICommand } from "./sub/base/icommand.ts";
+import { Commander } from "./sub/commands/commander.ts";
 
 type LogOptions = { file: string, level: LOG_LEVELS, enable: boolean };
 type ConsoleOptions = { welcomeMessage: string, customConsoleChar: string };
@@ -12,7 +14,7 @@ export namespace Console {
     /**
      * Duh !!!!
      */
-    const __version = "0.0.1";
+    const __version = "0.0.3";
     /**
      * Fancy
      */
@@ -88,24 +90,27 @@ export namespace Console {
         // setup log and other console properties
         setUp(logOptions.file, logOptions.enable, logOptions.enable, logOptions.level);
         _consoleChar = consoleOptions.customConsoleChar;
-        _welcome = `${_welcomeMain} \n ${consoleOptions.welcomeMessage}\n`;
+        _welcome = consoleOptions.welcomeMessage;
         _init = true;
         
         return Console;
     }
 
     /** 
-     * Start the console. It takes an commander as an executer.
-     * 
-     * Commander is a function that injests a command and spits out an Output for it.
+     * Start the console. It takes an array of commands as it's argument. The commands must follow the structure of 
+     * ICommand or you can inherit the Command Abstract class to use the predefined structure.
      */
-    export async function startConsole(commander: (cmd: string) => Promise<string>) {
+    export async function startConsole(commands: ICommand[]): Promise<void> {
+
+        const commander = Commander.createCommander(commands);
+
         if (!_init) {
             throw "Console not configured yet. Please call Console.initConfig to initialize some bootstrap code."
         }
 
         let command = "";
-        await writeToConsole(_welcome, true);
+        await writeToConsole(_welcome, false);
+        await writeToConsole(`version - ${__version}`, true);
         await _newConsole();
         for await ( const event of readKeypress() ) {
             
@@ -122,7 +127,7 @@ export namespace Console {
                 if (command != "") {
                     await writeToConsole("", true, false);
 
-                    const output = await commander(command);
+                    const output = await commander.recieveCommand(command);
 
                     await writeToConsole(output, false, false);
                     addToHistory(command);
