@@ -4,8 +4,10 @@ import { ICommand } from "../base/icommand.ts";
 import { HelpCommand } from "./HelpCommand.ts";
 import { ClearCommand } from "./ClearCommand.ts";
 
-import { decoder } from "../../utils/functions.ts";
 import { log, LOG_LEVELS } from "../../utils/log.ts";
+
+import { renderToTable } from "../../utils/console-table.ts";
+
 
 export abstract class Commander implements ICommander {
 
@@ -24,33 +26,12 @@ export abstract class Commander implements ICommander {
     }
 
     autoComplete = async (cmd: string) => {
-        const ttyLengthP = Deno.run({ cmd: ["stty", "size"], stdout: 'piped' })
-        const [status, stdout] = await Promise.all([
-            ttyLengthP.status(),
-            ttyLengthP.output()
-        ]);
-        const [,charsAllowed] = decoder.decode(stdout).split(' ').map(_ => parseInt(_));
-
         
         const list = Object
-        .keys(this.ListOfCommands)
-        .filter(_ => _.includes(cmd));
-        
-        const tData: Array<Array<string>> = [];
-        for (let i = 0; i < list.length; i = i+3) {
-            const chunk: string[] = [];
-            for (let j = 0; j < 3; j++) {
-                if (list[i + j]) {
-                    chunk.push(list[i + j])
-                }
-            }
-            tData.push(chunk)
-        }
-        
-        console.log(tData)
-        console.table(tData)
-        
-        return list.join('\n');
+            .keys(this.ListOfCommands)
+            .filter(_ => _.includes(cmd));
+            
+        return await renderToTable(list, 2);
     }
 
     recieveCommand = async (cmd: string) => {

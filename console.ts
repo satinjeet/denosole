@@ -123,12 +123,6 @@ export namespace Console {
 
             if (rtVal.key == "hint") {
                 command = command.trim();
-                const ttyLengthP = Deno.run({ cmd: ["stty", "size"], stdout: 'piped' })
-                const [status, stdout] = await Promise.all([
-                    ttyLengthP.status(),
-                    ttyLengthP.output()
-                ]);
-                log(LOG_LEVELS.DEBUG, [status, decoder.decode(stdout)], 'TTY....');
                 const output = await commander.autoComplete(command);
                 await writeToConsole(output, true, false);
                 await _newConsole();
